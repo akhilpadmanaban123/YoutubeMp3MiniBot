@@ -5,8 +5,8 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
 # Replace with your RapidAPI key and host
-RAPIDAPI_KEY = #add your rapidapi
-RAPIDAPI_HOST = #add rapid host endpoint
+RAPIDAPI_KEY = "#rapidapikey"
+RAPIDAPI_HOST = "rapidhost.com"
 
 # Function to fetch MP3 link
 def fetch_mp3_link(video_id: str) -> dict:
@@ -23,13 +23,20 @@ def fetch_mp3_link(video_id: str) -> dict:
     # Parse the JSON response
     return json.loads(data.decode("utf-8"))
 
-# Function to extract the video ID after "v="
+# Function to extract the video ID and convert shared links to standard format
 def extract_video_id(link: str) -> str:
-    # Regex to extract the video ID after "v="
-    regex = r"v=([a-zA-Z0-9_-]{11})"
+    # Regex to extract the video ID from both formats
+    regex = r"(?:v=|\/)([a-zA-Z0-9_-]{11})"
     match = re.search(regex, link)
     if match:
         return match.group(1)
+    return None
+
+# Function to convert shared links to standard format
+def convert_to_standard_link(link: str) -> str:
+    video_id = extract_video_id(link)
+    if video_id:
+        return f"https://www.youtube.com/watch?v={video_id}"
     return None
 
 # Format the API response into a user-friendly message
@@ -56,7 +63,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "🌟 *Welcome to the YouTube MP3 Downloader Bot!* 🌟\n\n"
         "🎧 I can help you download MP3 files from YouTube videos.\n\n"
         "📋 *How to use me:*\n"
-        "1. Copy the YouTube video link (e.g., `https://www.youtube.com/watch?v=jHjUJG9SHfo`).\n"
+        "1. Copy the YouTube video link (e.g., `https://www.youtube.com/watch?v=jHjUJG9SHfo` or `https://youtu.be/jHjUJG9SHfo`).\n"
         "2. Paste the link here, and I'll give you the MP3 download link.\n\n"
         "🚀 *Let's get started!* Paste your YouTube link below 👇"
     )
@@ -66,8 +73,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_input = update.message.text
 
+    # Convert shared links to standard format
+    standard_link = convert_to_standard_link(user_input)
+    if not standard_link:
+        await update.message.reply_text("❌ Invalid YouTube link. Please send a valid link.")
+        return
+
     # Extract the video ID after "v="
-    video_id = extract_video_id(user_input)
+    video_id = extract_video_id(standard_link)
     if not video_id:
         await update.message.reply_text("❌ Invalid YouTube link. Please send a valid link.")
         return
@@ -84,7 +97,7 @@ async def handle_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Main function to start the bot
 def main():
     # Replace with your Telegram bot token
-    TELEGRAM_TOKEN = #add yout bot token
+    TELEGRAM_TOKEN = "#token of telegram bot"
 
     # Create the bot application
     application = Application.builder().token(TELEGRAM_TOKEN).build()
