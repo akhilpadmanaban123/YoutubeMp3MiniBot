@@ -5,8 +5,8 @@ from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
 # Replace with your RapidAPI key and host
-RAPIDAPI_KEY = "#rapidapikey"
-RAPIDAPI_HOST = "rapidhost.com"
+RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
+RAPIDAPI_HOST = os.getenv("RAPIDAPI_HOST")
 
 # Function to fetch MP3 link
 def fetch_mp3_link(video_id: str) -> dict:
@@ -97,7 +97,7 @@ async def handle_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Main function to start the bot
 def main():
     # Replace with your Telegram bot token
-    TELEGRAM_TOKEN = "#token of telegram bot"
+    TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 
     # Create the bot application
     application = Application.builder().token(TELEGRAM_TOKEN).build()
